@@ -4,13 +4,13 @@ import (
 	"testing"
 )
 
-func intMinHeap() *GenericHeap[int] {
+func intMinHeap() *Heap[int] {
 	return NewHeap[int](func(a, b int) bool {
 		return a < b // Min-heap
 	})
 }
 
-func intMaxHeap() *GenericHeap[int] {
+func intMaxHeap() *Heap[int] {
 	return NewHeap[int](func(a, b int) bool {
 		return a > b // Max-heap
 	})
@@ -19,15 +19,14 @@ func intMaxHeap() *GenericHeap[int] {
 func TestGenericHeap_MinHeap(t *testing.T) {
 	h := intMinHeap()
 
-	// Push elements
 	input := []int{5, 3, 8, 1, 6}
 	for _, v := range input {
-		h.PushItem(v)
+		h.Push(v)
 	}
 
 	expectedOrder := []int{1, 3, 5, 6, 8}
 	for i, exp := range expectedOrder {
-		val, ok := h.PopItem()
+		val, ok := h.Pop()
 		if !ok {
 			t.Fatalf("Expected value at index %d, but heap was empty", i)
 		}
@@ -42,12 +41,12 @@ func TestGenericHeap_MaxHeap(t *testing.T) {
 
 	input := []int{2, 7, 4, 9, 1}
 	for _, v := range input {
-		h.PushItem(v)
+		h.Push(v)
 	}
 
 	expectedOrder := []int{9, 7, 4, 2, 1}
 	for i, exp := range expectedOrder {
-		val, ok := h.PopItem()
+		val, ok := h.Pop()
 		if !ok {
 			t.Fatalf("Expected value at index %d, but heap was empty", i)
 		}
@@ -60,7 +59,7 @@ func TestGenericHeap_MaxHeap(t *testing.T) {
 func TestGenericHeap_EmptyPopPeek(t *testing.T) {
 	h := intMinHeap()
 
-	_, ok := h.PopItem()
+	_, ok := h.Pop()
 	if ok {
 		t.Error("Expected PopItem to return false on empty heap")
 	}
@@ -73,17 +72,16 @@ func TestGenericHeap_EmptyPopPeek(t *testing.T) {
 
 func TestGenericHeap_Peek(t *testing.T) {
 	h := intMinHeap()
-	h.PushItem(10)
-	h.PushItem(5)
-	h.PushItem(8)
+	h.Push(10)
+	h.Push(5)
+	h.Push(8)
 
 	val, ok := h.Peek()
 	if !ok || val != 5 {
 		t.Errorf("Expected Peek to return 5, got %d (ok=%v)", val, ok)
 	}
 
-	// Pop and check peek again
-	h.PopItem()
+	h.Pop()
 	val, _ = h.Peek()
 	if val != 8 {
 		t.Errorf("Expected Peek to return 8 after one PopItem, got %d", val)
@@ -92,9 +90,9 @@ func TestGenericHeap_Peek(t *testing.T) {
 
 func TestGenericHeap_ItemsCopy(t *testing.T) {
 	h := intMinHeap()
-	h.PushItem(4)
-	h.PushItem(2)
-	h.PushItem(6)
+	h.Push(4)
+	h.Push(2)
+	h.Push(6)
 
 	cp := h.ItemsCopy()
 	if len(cp) != h.Size() {
@@ -102,7 +100,10 @@ func TestGenericHeap_ItemsCopy(t *testing.T) {
 	}
 
 	cp[0] = 999 // Modify copy, not original
-	if h.items[0] == 999 {
-		t.Error("ItemsCopy should return a copy, not a reference")
+	// Ensure modifying the copy does not affect the original heap
+	for _, v := range h.ItemsCopy() {
+		if v == 999 {
+			t.Error("Expected original heap to remain unchanged after modifying copy")
+		}
 	}
 }

@@ -2,61 +2,42 @@ package typed
 
 import (
 	"container/heap"
+	"github.com/tauki/typed/go/internal"
 )
 
-type HeapComparator[T any] func(a, b T) bool
-type GenericHeap[T any] struct {
-	items      []T
-	comparator HeapComparator[T] // returns true if a has higher priority than b
+// Comparator is a function that determines priority.
+// Should return true if a has higher priority than b.
+type Comparator[T any] internal.Comparator[T]
+
+type Heap[T any] struct {
+	inner *internal.Heap[T]
 }
 
-func NewHeap[T any](comparator HeapComparator[T]) *GenericHeap[T] {
-	h := &GenericHeap[T]{comparator: comparator}
-	heap.Init(h)
-	return h
+// NewHeap creates a new heap using the provided comparator.
+func NewHeap[T any](cmp Comparator[T]) *Heap[T] {
+	return &Heap[T]{inner: internal.NewHeap(cmp)}
 }
 
-func (h *GenericHeap[T]) Len() int           { return len(h.items) }
-func (h *GenericHeap[T]) Less(i, j int) bool { return h.comparator(h.items[i], h.items[j]) }
-func (h *GenericHeap[T]) Swap(i, j int)      { h.items[i], h.items[j] = h.items[j], h.items[i] }
-
-func (h *GenericHeap[T]) Push(x any) {
-	h.items = append(h.items, x.(T))
+func (h *Heap[T]) Push(x T) {
+	heap.Push(h.inner, x)
 }
 
-func (h *GenericHeap[T]) Pop() any {
-	n := len(h.items)
-	x := h.items[n-1]
-	h.items = h.items[:n-1]
-	return x
-}
-
-func (h *GenericHeap[T]) PushItem(x T) {
-	heap.Push(h, x)
-}
-
-func (h *GenericHeap[T]) PopItem() (T, bool) {
+func (h *Heap[T]) Pop() (T, bool) {
 	var zero T
-	if h.Len() == 0 {
+	if h.inner.Len() == 0 {
 		return zero, false
 	}
-	return heap.Pop(h).(T), true
+	return heap.Pop(h.inner).(T), true
 }
 
-func (h *GenericHeap[T]) Peek() (T, bool) {
-	var zero T
-	if len(h.items) == 0 {
-		return zero, false
-	}
-	return h.items[0], true
+func (h *Heap[T]) Peek() (T, bool) {
+	return h.inner.Peek()
 }
 
-func (h *GenericHeap[T]) Size() int {
-	return len(h.items)
+func (h *Heap[T]) Size() int {
+	return h.inner.Len()
 }
 
-func (h *GenericHeap[T]) ItemsCopy() []T {
-	cp := make([]T, len(h.items))
-	copy(cp, h.items)
-	return cp
+func (h *Heap[T]) ItemsCopy() []T {
+	return h.inner.ItemsCopy()
 }
