@@ -2,6 +2,7 @@ package typed
 
 import (
 	"container/heap"
+
 	"github.com/tauki/typed/go/internal"
 )
 
